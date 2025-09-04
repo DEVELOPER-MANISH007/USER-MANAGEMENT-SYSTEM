@@ -17,9 +17,11 @@
   "license": "ISC",
   "description": "A simple user management system with CRUD operations",
   "dependencies": {
+    "cors": "^2.8.5",
     "dotenv": "^16.6.1",
     "ejs": "^3.1.10",
     "express": "^4.21.2",
+    "mongodb": "4.0",
     "mongoose": "^8.8.4"
   },
   "devDependencies": {

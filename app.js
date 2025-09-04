@@ -1,9 +1,14 @@
 const express = require('express')
 const mongoose = require('mongoose')
+const cors = require("cors");
+
+
 const app = express()
 const path = require('path')
 require('dotenv').config()
-
+app.use(cors()); // quick fix
+// optional tighter config:
+// app.use(cors({ origin: ["https://<tera-frontend-domain>", "http://localhost:5173"], credentials: true }));
 // Database connection
 mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/userManagement')
 .then(() => console.log('Connected to MongoDB'))
