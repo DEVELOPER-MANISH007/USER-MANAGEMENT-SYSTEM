@@ -1,11 +1,9 @@
-const mongoose= require('mongoose')
-mongoose.connect('mongodb://127.0.0.1:27017/testapp1');
+const mongoose = require('mongoose')
 
 const userSchema = mongoose.Schema({
-
     Image: String,
     Name: String,
     Email: String
 })
 
- module.exports =  mongoose.model('user',userSchema)
+module.exports = mongoose.model('user', userSchema)

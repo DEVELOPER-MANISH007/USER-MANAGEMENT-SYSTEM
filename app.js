@@ -1,11 +1,25 @@
 const express = require('express')
+const mongoose = require('mongoose')
 const app = express()
-const path  = require('path')
+const path = require('path')
+require('dotenv').config()
 
-app.set("view engine","ejs")
+// Database connection
+mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/userManagement')
+.then(() => console.log('Connected to MongoDB'))
+.catch(err => console.error('MongoDB connection error:', err))
+
+app.set("view engine", "ejs")
 app.use(express.json())
-app.use(express.urlencoded({extended:true}))
-app.use(express.static(path.join(__dirname,'public')))
+app.use(express.urlencoded({ extended: true }))
+app.use(express.static(path.join(__dirname, 'public')))
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+    console.error(err.stack);
+    res.status(500).send('Something went wrong!');
+});
+
 const userModel = require('./models/user')
 
 app.get('/',(req,res)=>{
@@ -13,38 +27,75 @@ app.get('/',(req,res)=>{
     res.render('index')
 })
 app.get('/read', async (req,res)=>{
-    let users = await userModel.find();
-    res.render('read',{users})
+    try {
+        let users = await userModel.find();
+        res.render('read',{users})
+    } catch (error) {
+        console.error('Error fetching users:', error);
+        res.status(500).send('Error fetching users');
+    }
 })
 
 
 app.get('/edit/:userid', async (req,res)=>{
-    let user = await userModel.findOne({_id: req.params.userid});
-    res.render('edit',{user})
+    try {
+        let user = await userModel.findOne({_id: req.params.userid});
+        if (!user) {
+            return res.status(404).send('User not found');
+        }
+        res.render('edit',{user})
+    } catch (error) {
+        console.error('Error fetching user:', error);
+        res.status(500).send('Error fetching user');
+    }
 })
 app.post('/update/:userid', async (req,res)=>{
-    let {Image,Name,Email} = req.body;
-    let user = await userModel.findOneAndUpdate({_id: req.params.userid},{Image,Name,Email},{new:true});
-    res.redirect('/read')
+    try {
+        let {Image,Name,Email} = req.body;
+        let user = await userModel.findOneAndUpdate({_id: req.params.userid},{Image,Name,Email},{new:true});
+        if (!user) {
+            return res.status(404).send('User not found');
+        }
+        res.redirect('/read')
+    } catch (error) {
+        console.error('Error updating user:', error);
+        res.status(500).send('Error updating user');
+    }
 })
 
  
 
 app.get('/delete/:id', async (req,res)=>{
-    let users = await userModel.findOneAndDelete({_id:req.params.id});
-    res.redirect('/read')
+    try {
+        let user = await userModel.findOneAndDelete({_id:req.params.id});
+        if (!user) {
+            return res.status(404).send('User not found');
+        }
+        res.redirect('/read')
+    } catch (error) {
+        console.error('Error deleting user:', error);
+        res.status(500).send('Error deleting user');
+    }
 })
 
 app.post('/create', async (req,res)=>{
+    try {
         let {Name, Email, Image} = req.body;
-      let createdUser = await userModel.create({
+        let createdUser = await userModel.create({
             Name:Name,
             Email:Email,
             Image:Image
-    })
-    res.redirect('/read');
-
+        })
+        res.redirect('/read');
+    } catch (error) {
+        console.error('Error creating user:', error);
+        res.status(500).send('Error creating user');
+    }
 })
 
   
-app.listen(3000);
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+});
