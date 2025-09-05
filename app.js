@@ -15,10 +15,18 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/userManag
 .catch(err => console.error('❌ MongoDB connection error:', err))
 
 app.set("view engine", "ejs")
-app.use(express.json())
-app.use(express.urlencoded({ extended: true }))
+app.use(express.json({ limit: '10mb' }))
+app.use(express.urlencoded({ extended: true, limit: '10mb' }))
 app.use(express.static(path.join(__dirname, 'public')))
 
+// Debug middleware to log requests
+app.use((req, res, next) => {
+    console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
+    if (req.method === 'POST') {
+        console.log('Request body:', req.body);
+    }
+    next();
+});
 
 // Error handling middleware
 app.use((err, req, res, next) => {
@@ -87,15 +95,28 @@ app.get('/delete/:id', async (req,res)=>{
 app.post('/create', async (req,res)=>{
     try {
         let {Name, Email, Image} = req.body;
+        
+        // Log the received data for debugging
+        console.log('Received data:', {Name, Email, Image});
+        
+        // Validate required fields
+        if (!Name || !Email || !Image) {
+            console.error('Missing required fields:', {Name, Email, Image});
+            return res.status(400).send('Missing required fields: Name, Email, and Image are required');
+        }
+        
         let createdUser = await userModel.create({
-            Name:Name,
-            Email:Email,
-            Image:Image
-        })
+            Name: Name,
+            Email: Email,
+            Image: Image
+        });
+        
+        console.log('User created successfully:', createdUser);
         res.redirect('/read');
     } catch (error) {
         console.error('Error creating user:', error);
-        res.status(500).send('Error creating user');
+        console.error('Error details:', error.message);
+        res.status(500).send(`Error creating user: ${error.message}`);
     }
 })
 
