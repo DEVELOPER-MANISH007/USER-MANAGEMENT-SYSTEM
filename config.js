@@ -1,5 +1,3 @@
-// Configuration file for User Management System
-
 module.exports = {
     // Server Configuration
     PORT: process.env.PORT || 3000,

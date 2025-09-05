@@ -10,9 +10,14 @@ app.use(cors()); // quick fix
 // optional tighter config:
 // app.use(cors({ origin: ["https://<tera-frontend-domain>", "http://localhost:5173"], credentials: true }));
 // Database connection
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/userManagement')
-.then(() => console.log('Connected to MongoDB'))
-.catch(err => console.error('MongoDB connection error:', err))
+mongoose.connect(process.env.MONGODB_URI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+    serverSelectionTimeoutMS: 10000, // timeout after 10s
+})
+.then(() => console.log("✅ Connected to MongoDB Atlas"))
+.catch(err => console.error("❌ MongoDB connection error:", err.message));
+
 
 app.set("view engine", "ejs")
 app.use(express.json())
